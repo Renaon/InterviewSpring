@@ -1,19 +1,22 @@
 package com.geekbrains.Interview.controller;
 
+import com.geekbrains.Interview.controller.intetface.StandardController;
+import com.geekbrains.Interview.dto.CommonDTO;
 import com.geekbrains.Interview.dto.StudentDTO;
 import com.geekbrains.Interview.entity.Student;
 import com.geekbrains.Interview.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@RestController
-public class TestController {
+@Controller
+@RequestMapping("/")
+public class TestController implements StandardController {
     @Autowired
     StudentService studentService;
 
@@ -42,23 +45,27 @@ public class TestController {
         return "success";
     }
 
-    @GetMapping("/create")
-    public StudentDTO create(@RequestParam("name") String name, @RequestParam("mark") Integer mark){
+    @PostMapping("create")
+    public String create(@RequestParam("name") String name, @RequestParam("mark") String mark){
         Student student = new Student();
         student.setName(name);
-        student.setMark(mark);
+        student.setMark(Integer.valueOf(mark));
         studentService.add(student);
-        return new StudentDTO(student.getId(), student.getName(),student.getMark());
+        return "/";
     }
 
-    @GetMapping("/change_mark")
+    @PostMapping("/change_mark")
     public StudentDTO change_mark(@RequestParam("name") String name, @RequestParam("mark") Integer mark){
         studentService.changeMark(name, mark);
         Student student = studentService.loadStudentByName(name);
         return new StudentDTO(student.getId(), student.getName(),student.getMark());
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("add")
+    public String add(){
+        return "add";
+    }
+
     public List<StudentDTO> getAll(){
         List<Student> students = studentService.getAll();
         List<StudentDTO> studentDTOList = new ArrayList<>();
@@ -68,10 +75,16 @@ public class TestController {
         return studentDTOList;
     }
 
+    @GetMapping("/")
+    public String index(Model model){
+        List<StudentDTO> students = getAll();
+        model.addAttribute("students", students);
+        return "index";
+    }
+
     @GetMapping("get_student")
     public StudentDTO getStudent(@RequestParam("name") String name){
         Student student = studentService.loadStudentByName(name);
         return new StudentDTO(student.getId(), student.getName(), student.getMark());
     }
-
 }
